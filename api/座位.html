@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>教室座位登記系統</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .classroom {
+            text-align: center;
+            margin-top: 20px;
+            background-color: white;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            width: 80%;
+            max-width: 800px;
+        }
+
+        /* 日期和時間顯示樣式 */
+        #date-time {
+            font-size: 32px;
+            color: #333;
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            display: inline-block;
+        }
+
+        .teacher-desk {
+            width: 180px;
+            height: 60px;
+            background-color: #2a9d8f;
+            margin: 20px auto;
+            text-align: center;
+            line-height: 60px;
+            font-weight: bold;
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 座位佈局 */
+        .columns {
+            display: flex;
+            justify-content: center;
+            flex-direction: row-reverse;
+        }
+
+        .column {
+            margin: 0 10px;
+        }
+
+        .seat {
+            width: 50px;
+            height: 50px;
+            margin: 5px 0;
+            background-color: #6abf69;
+            display: block;
+            line-height: 50px;
+            text-align: center;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .seat:hover {
+            background-color: #5da55a;
+        }
+
+        .seat.occupied {
+            background-color: #e63946;
+        }
+
+        .seat.unavailable {
+            background-color: grey;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="classroom">
+        <!-- 簡單的日期和時間顯示 -->
+        <div id="date-time"></div>
+
+        <!-- 講桌 -->
+        <div class="teacher-desk">講桌</div>
+
+        <!-- 座位區 -->
+        <div class="columns" id="columns"></div>
+    </div>
+
+    <script>
+        const totalColumns = 8; // 8排
+        const seatsPerColumn = 10; // 每排10個位子
+        const columnsContainer = document.getElementById('columns');
+        const currentUser = prompt("請輸入您的姓名：");
+        let currentSeat = null;
+
+        // 動態生成座位
+        for (let col = 1; col <= totalColumns; col++) {
+            const columnDiv = document.createElement('div');
+            columnDiv.classList.add('column');
+            columnDiv.innerHTML = `<strong>第 ${col} 排</strong>`;
+            
+            for (let row = 1; row <= seatsPerColumn; row++) {
+                const seatDiv = document.createElement('div');
+                seatDiv.classList.add('seat');
+                seatDiv.textContent = row;
+                seatDiv.setAttribute('data-seat', `${col}-${row}`);
+                
+                // 座位點擊事件
+                seatDiv.addEventListener('click', function() {
+                    if (seatDiv.classList.contains('unavailable')) {
+                        alert('這個座位不可用');
+                        return;
+                    }
+
+                    if (seatDiv.classList.contains('occupied')) {
+                        const seatUser = seatDiv.dataset.user;
+                        if (seatUser === currentUser) {
+                            const cancel = confirm(`是否取消登記 ${seatDiv.dataset.seat}？`);
+                            if (cancel) {
+                                seatDiv.classList.remove('occupied');
+                                seatDiv.textContent = seatDiv.dataset.seat.split('-')[1];
+                                seatDiv.removeAttribute('data-user');
+                                currentSeat = null;
+                            }
+                        } else {
+                            alert(`這個座位已被 ${seatUser} 登記`);
+                        }
+                        return;
+                    }
+
+                    if (currentSeat) {
+                        alert(`您已登記 ${currentSeat.dataset.seat}`);
+                        return;
+                    }
+
+                    const userName = currentUser;
+                    if (userName) {
+                        seatDiv.classList.add('occupied');
+                        seatDiv.textContent = userName;
+                        seatDiv.setAttribute('data-user', userName);
+                        currentSeat = seatDiv;
+                    }
+                });
+
+                columnDiv.appendChild(seatDiv);
+            }
+            columnsContainer.appendChild(columnDiv);
+        }
+
+        // 顯示當前日期和時間
+        function updateDateTime() {
+            const now = new Date();
+            const date = now.toLocaleDateString();
+            const time = now.toLocaleTimeString();
+            document.getElementById('date-time').textContent = `${date} | ${time}`;
+        }
+
+        // 初始化時顯示一次時間
+        updateDateTime();
+        // 每秒更新一次時間
+        setInterval(updateDateTime, 1000);
+    </script>
+</body>
+</html>
